@@ -10,7 +10,8 @@ export GROUP="mail"
 
 # The SPAMD daemon user.
 # Note: on OpenBSD, it's "_vscan". On FreeBSD, it's "vscan".
-export SPAMD_USER='debian-spamd'
+#export SPAMD_USER='debian-spamd'
+export SPAMD_USER='root'
 export SPAMD_USER_HOMEDIR="$(eval echo ~${SPAMD_USER})"
 
 # Kernel name, in upper cases.
