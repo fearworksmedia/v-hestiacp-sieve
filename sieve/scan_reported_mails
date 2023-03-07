@@ -85,4 +85,6 @@ if [[ X"$?" != X'0' ]]; then
     ${LOG} '[CLEAN]' ${output}
 fi
 
+sa-learn --sync
+
 rm -f ${LOCK_FILE} &>/dev/null
