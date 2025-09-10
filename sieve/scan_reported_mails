@@ -9,13 +9,7 @@ export OWNER="mail"
 export GROUP="mail"
 
 # The SPAMD daemon user.
-# Note: on OpenBSD, it's "_vscan". On FreeBSD, it's "vscan".
-#export SPAMD_USER='debian-spamd'
-export SPAMD_USER='root'
-export SPAMD_USER_HOMEDIR="$(eval echo ~${SPAMD_USER})"
-
-# Kernel name, in upper cases.
-export KERNEL_NAME="$(uname -s | tr '[a-z]' '[A-Z]')"
+export SPAMD_USER='debian-spamd'
 
 # A temporary lock file. should be removed after successfully examed messages.
 export LOCK_FILE='/tmp/scan_reported_mails.lock'
@@ -23,8 +17,8 @@ export LOCK_FILE='/tmp/scan_reported_mails.lock'
 # Logging to syslog with 'logger' command.
 export LOG='logger -p local5.info -t scan_reported_mails'
 
-# `sa-learn` command, with optional arguments.
-export SA_LEARN="sa-learn --no-sync -u ${SPAMD_USER} --dbpath ${SPAMD_USER_HOMEDIR}/.spamassassin"
+# 'sa-learn' command, with optional arguments.
+export SA_LEARN="sa-learn --no-sync"
 
 # Spool directory.
 # Must be owned by mail:mail.
@@ -60,32 +54,27 @@ for dir in "${SPOOL_DIR}" "${SPOOL_LEARN_SPAM_DIR}" "${SPOOL_LEARN_HAM_DIR}"; do
     chmod 0775 ${dir}
 done
 
-# If there're a lot files, direct `mv` command may fail with error like
-# `argument list too long`, so we need `find` in this case.
-if [[ X"${KERNEL_NAME}" == X'OPENBSD' ]] || [[ X"${KERNEL_NAME}" == X'FREEBSD' ]]; then
-    [[ -d ${SPOOL_SPAM_DIR} ]] && find ${SPOOL_SPAM_DIR} -name '*.eml' -exec mv {} ${SPOOL_LEARN_SPAM_DIR}/ \;
-    [[ -d ${SPOOL_HAM_DIR} ]]  && find ${SPOOL_HAM_DIR}  -name '*.eml' -exec mv {} ${SPOOL_LEARN_HAM_DIR}/  \;
-else
-    [[ -d ${SPOOL_SPAM_DIR} ]] && find ${SPOOL_SPAM_DIR} -name '*.eml' -exec mv -t ${SPOOL_LEARN_SPAM_DIR}/ {} +
-    [[ -d ${SPOOL_HAM_DIR} ]]  && find ${SPOOL_HAM_DIR}  -name '*.eml' -exec mv -t ${SPOOL_LEARN_HAM_DIR}/  {} +
-fi
+# If there're a lot files, direct 'mv' command may fail with error like
+# 'argument list too long', so we need 'find' in this case.
+[[ -d ${SPOOL_SPAM_DIR} ]] && find ${SPOOL_SPAM_DIR} -name '*.eml' -exec mv -t ${SPOOL_LEARN_SPAM_DIR}/ {} +
+[[ -d ${SPOOL_HAM_DIR} ]]  && find ${SPOOL_HAM_DIR}  -name '*.eml' -exec mv -t ${SPOOL_LEARN_HAM_DIR}/  {} +
 
 # Try to delete empty directory, if failed, that means we have some messages to
 # scan.
 rmdir ${SPOOL_LEARN_SPAM_DIR} &>/dev/null
 if [[ X"$?" != X'0' ]]; then
-    output="$(${SA_LEARN} --spam ${SPOOL_LEARN_SPAM_DIR})"
+    output="$(sudo -u ${SPAMD_USER} ${SA_LEARN} --spam ${SPOOL_LEARN_SPAM_DIR})"
     rm -rf ${SPOOL_LEARN_SPAM_DIR} &>/dev/null
     ${LOG} '[SPAM]' ${output}
 fi
 
 rmdir ${SPOOL_LEARN_HAM_DIR} &>/dev/null
 if [[ X"$?" != X'0' ]]; then
-    output="$(${SA_LEARN} --ham ${SPOOL_LEARN_HAM_DIR})"
+    output="$(sudo -u ${SPAMD_USER} ${SA_LEARN} --ham ${SPOOL_LEARN_HAM_DIR})"
     rm -rf ${SPOOL_LEARN_HAM_DIR} &>/dev/null
     ${LOG} '[CLEAN]' ${output}
 fi
 
-sa-learn --sync
+sudo -u ${SPAMD_USER} sa-learn --sync
 
 rm -f ${LOCK_FILE} &>/dev/null
