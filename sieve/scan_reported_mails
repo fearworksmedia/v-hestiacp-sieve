@@ -75,6 +75,6 @@ if [[ X"$?" != X'0' ]]; then
     ${LOG} '[CLEAN]' ${output}
 fi
 
-sudo -u ${SPAMD_USER} sa-learn --sync
+sudo -u ${SPAMD_USER} sa-learn --sync >/dev/null
 
 rm -f ${LOCK_FILE} &>/dev/null
