@@ -75,6 +75,11 @@ if [[ X"$?" != X'0' ]]; then
     ${LOG} '[CLEAN]' ${output}
 fi
 
+find /var/lib/spamassassin -maxdepth 1 -type f -name 'bayes_*' \
+    ! -user ${SPAMD_USER} \
+    -exec logger -t spamham "Correcting ownership on {}" \; \
+    -exec chown ${SPAMD_USER}:${SPAMD_USER} {} \;
+
 sudo -u ${SPAMD_USER} sa-learn --sync >/dev/null
 
 rm -f ${LOCK_FILE} &>/dev/null
