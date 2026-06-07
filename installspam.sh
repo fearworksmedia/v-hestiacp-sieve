@@ -4,6 +4,7 @@ cp -r ./conf.d/20-spamham.conf /etc/dovecot/conf.d/20-spamham.conf
 cp -r ./mail/. /var/mail/
 cp -r ./sieve/. /etc/dovecot/sieve/
 mkdir -p /var/mail/imapsieve_copy
+mkdir -p /var/mail/imapsieve_copy/processing
 mkdir -p /var/mail/imapsieve_copy/spam
 mkdir -p /var/mail/imapsieve_copy/ham
 
