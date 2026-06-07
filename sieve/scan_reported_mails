@@ -59,6 +59,11 @@ done
 [[ -d ${SPOOL_SPAM_DIR} ]] && find ${SPOOL_SPAM_DIR} -name '*.eml' -exec mv -t ${SPOOL_LEARN_SPAM_DIR}/ {} +
 [[ -d ${SPOOL_HAM_DIR} ]]  && find ${SPOOL_HAM_DIR}  -name '*.eml' -exec mv -t ${SPOOL_LEARN_HAM_DIR}/  {} +
 
+# During setup, we added the SpamAssassin user debian-spamd to the mail group,
+# so now we just need to allow this group to read the files we've moved
+find ${SPOOL_LEARN_SPAM_DIR} -type f -name '*.eml' -exec chmod 640 {} \;
+find ${SPOOL_LEARN_HAM_DIR}  -type f -name '*.eml' -exec chmod 640 {} \;
+
 # Try to delete empty directory, if failed, that means we have some messages to
 # scan.
 rmdir ${SPOOL_LEARN_SPAM_DIR} &>/dev/null
